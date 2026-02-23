@@ -324,8 +324,6 @@ const fetchAllStateMinistries = async () => {
     }),
   });
 
-  console.log(response.body);
-
   if (!response.ok) {
     throw new Error(`API error: ${response.statusText}`);
   }
@@ -347,8 +345,6 @@ const fetchAllCabinetMinistries = async () => {
       },
     }),
   });
-
-  console.log(response);
 
   if (!response.ok) {
     throw new Error(`API error: ${response.statusText}`);

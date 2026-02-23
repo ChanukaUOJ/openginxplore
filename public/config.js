@@ -7,7 +7,8 @@
 //     apiUrlData: "<bff_service>",
 //     feedbackFormUrl: "<feedback_form_url>",
 //     version: "<version>",
-//     dataSources: "<data_sources>"
+//     dataSources: "<data_sources>",
+//     gaMeasurementId: "<google_analytics_measurement_id>"
 // };
 
 // for development
@@ -18,6 +19,7 @@ window.configs = {
     version: "ALPHA",
     dataSources: "https://data.gov.lk/",
     imageStorageBaseUrl: "" // add the base url of the image storage location ex: "https://raw.githubusercontent.com/<org_name>/<repo_name>/<branch>/"
+    gaMeasurementId: ""
 };
 
 // get the data to the relevant component using,
