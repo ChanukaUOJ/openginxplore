@@ -16,7 +16,8 @@ window.configs = {
     apiUrlData: "/api", // keep '/api' for local development, otherwise this redirects to the BFF service
     feedbackFormUrl: "",
     version: "ALPHA",
-    dataSources: "https://data.gov.lk/"
+    dataSources: "https://data.gov.lk/",
+    imageStorageBaseUrl: "" // add the base url of the image storage location ex: "https://raw.githubusercontent.com/<org_name>/<repo_name>/<branch>/"
 };
 
 // get the data to the relevant component using,
