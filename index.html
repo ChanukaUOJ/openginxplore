@@ -12,10 +12,10 @@
     (function () {
       // Skip if running on localhost
       const hostname = location.hostname;
-      if (hostname == 'localhost' || hostname === '127.0.0.1') {
-        console.log('[Dev] Google Analytics not loaded - running on ' + hostname);
-        return;
-      }
+      // if (hostname == 'localhost' || hostname === '127.0.0.1') {
+      //   console.log('[Dev] Google Analytics not loaded - running on ' + hostname);
+      //   return;
+      // }
 
       // Skip if measurement ID is not configured
       const measurementId = window.configs && window.configs.gaMeasurementId;
@@ -32,7 +32,7 @@
       window.dataLayer = window.dataLayer || [];
       window.gtag = function () { dataLayer.push(arguments); };
       window.gtag('js', new Date());
-      window.gtag('config', measurementId);
+      window.gtag('config', measurementId, { send_page_view: false });
     })();
   </script>
 
