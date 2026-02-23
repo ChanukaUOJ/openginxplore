@@ -49,23 +49,41 @@ const PersonProfile = () => {
     (rel) => rel.id === selectedPerson?.id
   ).length;
 
-  // TODO: Uncomment when the API is ready
-  // const { data: personProfile, isLoading: isLoadingPersonProfile, error } = usePersonProfile(personId);
-  
-  // TODO: Remove this mock data when the API is ready
-  const personProfile = {
-    name: "Anura Kumara Dissanayake",
-    political_party: "National People's Power",
-    date_of_birth: "1968-11-24",
-    religion: "Buddhism",
-    profession: "Politician",
-    email: null,
-    phone_number: null,
-    education_qualifications: "Bachelor of Science",
-    professional_qualifications: null,
-    image_URL: "data/people/images/anura-kumara-dissanayake-npp.jpg",
-    age: 57,
-  };
+  const { data: personProfile, isLoading: isLoadingPersonProfile, error } = usePersonProfile(personId);
+
+  if (isLoadingPersonProfile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Loading profile...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !personProfile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background px-6">
+        <div className="text-center max-w-md">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+            Profile Not Available
+          </h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+            We couldn't load this person's profile. It may not exist or something went wrong.
+          </p>
+          <button
+            onClick={() => navigate("/")}
+            className="px-4 py-2 text-sm font-medium bg-accent text-white rounded-md hover:opacity-90 transition hover:cursor-pointer"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="px-4 py-6 md:px-12 md:py-10 lg:px-20 xl:px-28 2xl:px-40 w-full bg-background min-h-screen">
@@ -189,7 +207,7 @@ const PersonProfile = () => {
       <div className="w-full">
         {/* Tab Row */}
         <div className="flex gap-1 mb-6 border-b border-gray-100 dark:border-gray-800">
-                    {[
+          {[
             { key: "history", label: "Portfolios Held" },
             { key: "qualifications", label: "Qualifications" },
           ].map((tab) => (
