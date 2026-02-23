@@ -30,9 +30,7 @@ const fieldConfig = [
 
 const PersonProfile = () => {
   const { personId } = useParams();
-  const imageStorageBaseUrl = window?.configs?.imageStorageBaseUrl
-    ? window.configs.imageStorageBaseUrl
-    : "";
+  const imageStorageBaseUrl = window?.configs?.imageStorageBaseUrl ?? "";
   const navigate = useNavigate();
   const location = useLocation();
   const state = location.state || {};
@@ -103,7 +101,7 @@ const PersonProfile = () => {
               {personProfile.image_URL != null ? (
                 <img
                   className="block"
-                  style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
                   src={imageStorageBaseUrl + personProfile.image_URL}
                   alt={personProfile?.name}
                 />
@@ -191,16 +189,19 @@ const PersonProfile = () => {
       <div className="w-full">
         {/* Tab Row */}
         <div className="flex gap-1 mb-6 border-b border-gray-100 dark:border-gray-800">
-          {["history", "qualifications"].map((tab) => (
+                    {[
+            { key: "history", label: "Portfolios Held" },
+            { key: "qualifications", label: "Qualifications" },
+          ].map((tab) => (
             <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2.5 text-sm font-semibold capitalize transition-all border-b-2 -mb-px hover:cursor-pointer ${activeTab === tab
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`px-4 py-2.5 text-sm font-semibold capitalize transition-all border-b-2 -mb-px hover:cursor-pointer ${activeTab === tab.key
                 ? "border-accent text-accent"
                 : "border-transparent text-gray-400 hover:text-gray-600"
                 }`}
             >
-              {tab === "history" ? "Portfolios Held" : "Qualifications"}
+              {tab.label}
             </button>
           ))}
         </div>
