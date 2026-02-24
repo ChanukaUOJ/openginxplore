@@ -168,5 +168,5 @@ If you encounter any issues during deployment, double-check:
 > [!TIP]
 > **Avoid Unstyled (Empty) Page Issues:** 
 > If the site ever appears unstyled after a deployment, it's usually a **Routing Fallback Error** (where the server serves `index.html` for a missing `.css` file). 
-> 1. We use `<meta>` tags in `index.html` to prevent this by forcing cache revalidation.
+> 1. We use `<meta>` tags in `index.html` to force cache revalidation. For a more robust solution, configure your server to send `Cache-Control: no-cache, no-store, must-revalidate` headers for `index.html`.
 > 2. For further safeguards, ensure your deployment pipeline preserves the `/assets/` folder of the *previous* build for a few minutes to avoid breaking sessions for active users.
