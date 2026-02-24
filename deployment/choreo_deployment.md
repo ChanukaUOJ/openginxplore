@@ -165,18 +165,8 @@ If you encounter any issues during deployment, double-check:
 
 ---
 
-## 🛠 Troubleshooting: Critical Technical Anomalies
-
-### 1. The "602-Byte" CSS Routing Error
-**Symptom:** The site appears completely unstyled (plain text/white background). In the browser console/network tab, you see a request for a `.css` file that returns a size of exactly **602 bytes** (or matches the size of `index.html`).
-
-**Why it happens:**
-This is a **Routing Fallback Error**. 
-1. The browser requests an old CSS file (from a previous build) that no longer exists on the server.
-2. The server (Choreo), configured for SPA routing, doesn't find the file but instead of a 404, it serves `index.html` by default.
-3. The browser receives HTML code where it expected CSS and fails to render the styles.
-
-**How to avoid it:**
-- **Cache Control:** Ensure `index.html` is never cached aggressively. We have added `<meta http-equiv="Cache-Control" ...>` to `index.html` to force browsers to check for the latest version of the app structure.
-- **Clean Deploys:** If possible, ensure the transition between builds preserves the `/assets/` directory for a short period so active users don't lose their current session's styles.
-- **Hard Refresh:** If you see this during development/testing, use **Cmd + Shift + R** to bypass the local cache and fetch the latest asset hashes.
+> [!TIP]
+> **Avoid Unstyled (Empty) Page Issues:** 
+> If the site ever appears unstyled after a deployment, it's usually a **Routing Fallback Error** (where the server serves `index.html` for a missing `.css` file). 
+> 1. We use `<meta>` tags in `index.html` to prevent this by forcing cache revalidation.
+> 2. For further safeguards, ensure your deployment pipeline preserves the `/assets/` folder of the *previous* build for a few minutes to avoid breaking sessions for active users.
