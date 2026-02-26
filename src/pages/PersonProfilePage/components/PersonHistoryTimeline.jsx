@@ -91,7 +91,7 @@ const PersonHistoryTimeline = ({
   };
 
   return (
-    <div className=" rounded-md p-6 bg-background-dark">
+    <div className=" rounded-md p-6  dark:bg-gray-800 bg-white overflow-x-hidden">
       <VerticalTimeline
         animate={true}
         layout="2-columns"
@@ -109,7 +109,7 @@ const PersonHistoryTimeline = ({
               icon={<Landmark />}
               iconStyle={{
                 background: isDark ? "#101828" : "#f8f8f8",
-                color: isDark ? "#f8f8f8" : "#0b0b0b",
+                color: isDark ? "#f8f8f8" : "#0099ee",
                 boxShadow: "none",
                 border: `1px solid  ${isDark ? "#364153" : "#dbdbdb"}`,
               }}
@@ -141,7 +141,7 @@ const PersonHistoryTimeline = ({
             >
               {wasPresident && (
                 <div className="-mt-4">
-                  <p className="bg-active-green/15 text-center rounded-md px-2 py-1 inline-block mt-0">
+                  <p className="px-2 bg-blue-500/15 text-accent text-center rounded-md py-1 inline-block mt-0">
                     President
                   </p>
                 </div>

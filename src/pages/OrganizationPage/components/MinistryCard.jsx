@@ -13,7 +13,8 @@ const MinistryCard = ({ card, onClick }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const handleOpenProfile = (id) => {
+  const handleOpenProfile = (e, id) => {
+    e.stopPropagation();
     if (!id) return;
     navigate(`/person-profile/${id}`, {
       state: { mode: "back", from: location.pathname + location.search }
@@ -164,8 +165,8 @@ const MinistryCard = ({ card, onClick }) => {
             <Stack direction="row" alignItems="center" spacing={1}>
               <Typography
                 variant="subtitle2"
-                onClick={() =>
-                  handleOpenProfile(card.ministers?.[0]?.id)
+                onClick={(e) =>
+                  handleOpenProfile(e, card.ministers?.[0]?.id)
                 }
                 sx={{
                   fontWeight: 400,

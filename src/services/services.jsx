@@ -5,6 +5,7 @@ const apiUrl = window?.configs?.apiUrl ? window.configs.apiUrl : ""
 // const apiUrl = "";
 
 const GI_SERVICE_URL = "/v1/organisation";
+const GI_SERVICE_URL_PERSON = "/v1/person";
 
 export const getActivePortfolioList = async ({ presidentId, date, signal }) => {
   const { data } = await axios.post(
@@ -14,6 +15,14 @@ export const getActivePortfolioList = async ({ presidentId, date, signal }) => {
       params: { presidentId },
       signal
     }
+  );
+
+  return data;
+};
+
+export const getPersonProfile = async (personId) => {
+  const { data } = await axios.get(
+    `${GI_SERVICE_URL_PERSON}/person-profile/${personId}`,
   );
 
   return data;
@@ -526,4 +535,5 @@ export default {
   chatbotApiCall,
   getDepartmentRenamedInfo,
   getMinistriesByPerson,
+  getPersonProfile
 };
