@@ -1,7 +1,7 @@
 const PersonQualifications = ({ education, professionalQualifications }) => {
     const qualifications = [
-        { title: 'Education', value: education, fallback: 'No education qualifications provided', className: 'mb-8' },
-        { title: 'Professional Qualifications', value: professionalQualifications, fallback: 'No professional qualifications provided', className: '' }
+        { title: 'Education', value: education, fallback: 'Not found on the source https://parliament.lk/', className: 'mb-8' },
+        { title: 'Professional Qualifications', value: professionalQualifications, fallback: 'Not found on the source https://parliament.lk/', className: '' }
     ];
 
     return (

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import PersonHistoryTimeline from "../components/PersonHistoryTimeline";
@@ -50,6 +50,16 @@ const PersonProfile = () => {
   ).length;
 
   const { data: personProfile, isLoading: isLoadingPersonProfile, error } = usePersonProfile(personId);
+
+  const isQualificationsDisabled =
+    !personProfile?.education_qualifications &&
+    !personProfile?.professional_qualifications;
+
+  useEffect(() => {
+    if (isQualificationsDisabled && activeTab === "qualifications") {
+      setActiveTab("history");
+    }
+  }, [isQualificationsDisabled, activeTab]);
 
   if (isLoadingPersonProfile) {
     return (
@@ -116,11 +126,11 @@ const PersonProfile = () => {
           {/* Avatar — small, clean, no ring */}
           <div className="flex-shrink-0">
             <div className="w-28 h-28 md:w-35 md:h-35 rounded-full bg-gray-100 shadow-sm" style={{ overflow: "hidden", flexShrink: 0 }}>
-              {personProfile.image_URL != null ? (
+              {personProfile.image_url != null ? (
                 <img
                   className="block"
                   style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                  src={imageStorageBaseUrl + personProfile.image_URL}
+                  src={imageStorageBaseUrl + personProfile.image_url}
                   alt={personProfile?.name}
                 />
               ) : (
@@ -202,21 +212,28 @@ const PersonProfile = () => {
 
       {/* Divider */}
       <div className="border-t border-gray-100 dark:border-gray-800 mb-8" />
-
       {/* Tabs + Content */}
       <div className="w-full">
         {/* Tab Row */}
         <div className="flex gap-1 mb-6 border-b border-gray-100 dark:border-gray-800">
           {[
-            { key: "history", label: "Portfolios Held" },
-            { key: "qualifications", label: "Qualifications" },
+            { key: "history", label: "Portfolios Held", disabled: false },
+            {
+              key: "qualifications",
+              label: "Qualifications",
+              disabled: isQualificationsDisabled,
+            },
           ].map((tab) => (
             <button
               key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className={`px-4 py-2.5 text-sm font-semibold capitalize transition-all border-b-2 -mb-px hover:cursor-pointer ${activeTab === tab.key
-                ? "border-accent text-accent"
-                : "border-transparent text-gray-400 hover:text-gray-600"
+              onClick={() => !tab.disabled && setActiveTab(tab.key)}
+              disabled={tab.disabled}
+              className={`px-4 py-2.5 text-sm font-semibold capitalize transition-all border-b-2 -mb-px
+        ${tab.disabled
+                  ? "text-gray-300 cursor-not-allowed border-transparent"
+                  : activeTab === tab.key
+                    ? "border-accent text-accent"
+                    : "border-transparent text-gray-400 hover:text-gray-600 hover:cursor-pointer"
                 }`}
             >
               {tab.label}
@@ -233,7 +250,7 @@ const PersonProfile = () => {
               presidentRelationDict={presidentRelationDict}
             />
           )}
-          {activeTab === "qualifications" && (
+          {activeTab === "qualifications" && !isQualificationsDisabled && (
             <PersonQualifications
               education={personProfile?.education_qualifications}
               professionalQualifications={
