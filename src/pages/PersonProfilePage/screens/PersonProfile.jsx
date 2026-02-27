@@ -49,30 +49,7 @@ const PersonProfile = () => {
     (rel) => rel.id === selectedPerson?.id
   ).length;
 
-  // const { data: personProfile, isLoading: isLoadingPersonProfile, error } = usePersonProfile(personId);
-
-  // const isQualificationsDisabled =
-  //   !personProfile?.education_qualifications &&
-  //   !personProfile?.professional_qualifications;
-
-  // useEffect(() => {
-  //   if (isQualificationsDisabled && activeTab === "qualifications") {
-  //     setActiveTab("history");
-  //   }
-  // }, [isQualificationsDisabled, activeTab]);
-
-  const personProfile = {
-    name: "Ranil Wickremesinghe",
-    political_party: "United National Party",
-    date_of_birth: "1949-03-24",
-    age: 75,
-    profession: "Lawyer",
-    religion: "Buddhist",
-    phone_number: "1234567890",
-    email: "[EMAIL_ADDRESS]",
-    education_qualifications: "Bac",
-    professional_qualifications: "null",
-  }
+  const { data: personProfile, isLoading: isLoadingPersonProfile, error } = usePersonProfile(personId);
 
   const isQualificationsDisabled =
     !personProfile?.education_qualifications &&
@@ -83,9 +60,6 @@ const PersonProfile = () => {
       setActiveTab("history");
     }
   }, [isQualificationsDisabled, activeTab]);
-
-  const isLoadingPersonProfile = false;
-  const error = false;
 
   if (isLoadingPersonProfile) {
     return (
@@ -172,29 +146,47 @@ const PersonProfile = () => {
             <h1 className="text-2xl md:text-3xl font-medium dark:text-white text-gray-900 mb-1 tracking-tight">
               {personProfile?.name || "Unknown"}
             </h1>
+
             {personProfile?.political_party && (
               <p className="text-sm text-gray-400 mb-6">
-                {personProfile.political_party}
+                Last Elected Party - {personProfile.political_party}
               </p>
             )}
 
             {/* Info Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-5">
-              {fieldConfig.map(({ key, label, icon: Icon }) => (
-                <div key={key} className="flex items-start gap-3">
-                  <div className="mt-0.5 flex-shrink-0 w-7 h-7 rounded-md bg-gray-50 dark:bg-transparent dark:border-gray-700 border border-gray-100 flex items-center justify-center">
-                    <Icon size={14} className="text-accent" />
+              {(() => {
+                const validFields = fieldConfig.filter(
+                  ({ key }) =>
+                    personProfile?.[key] &&
+                    personProfile?.[key].toString().trim() !== ""
+                );
+
+                if (validFields.length === 0) {
+                  return (
+
+                    <div className="col-span-full flex items-center justify-start py-1 text-center text-xs text-accent italic">
+                      Data is being collected...
+                    </div>
+                  );
+                }
+
+                return validFields.map(({ key, label, icon: Icon }) => (
+                  <div key={key} className="flex items-start gap-3">
+                    <div className="mt-0.5 flex-shrink-0 w-7 h-7 rounded-md bg-gray-50 dark:bg-transparent dark:border-gray-700 border border-gray-100 flex items-center justify-center">
+                      <Icon size={14} className="text-accent" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-0.5">
+                        {label}
+                      </p>
+                      <p className="text-sm text-gray-800 dark:text-white">
+                        {personProfile?.[key]}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-0.5">
-                      {label}
-                    </p>
-                    <p className="text-sm text-gray-800 dark:text-white">
-                      {personProfile?.[key] || "Unknown"}
-                    </p>
-                  </div>
-                </div>
-              ))}
+                ));
+              })()}
 
               {/* Ministries Worked At */}
               <div className="flex items-start gap-3">
@@ -284,6 +276,20 @@ const PersonProfile = () => {
               }
             />
           )}
+        </div>
+        {/* Source Attribution */}
+        <div className="mt-8 pt-4 border-t border-gray-100 dark:border-gray-800">
+          <p className="text-xs text-gray-400">
+            Profile data source:{" "}
+            <a
+              href="https://www.parliament.lk/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-accent transition-colors underline underline-offset-2"
+            >
+              www.parliament.lk
+            </a>
+          </p>
         </div>
       </div>
     </div>
