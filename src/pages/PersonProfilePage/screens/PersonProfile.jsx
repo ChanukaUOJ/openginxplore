@@ -61,6 +61,13 @@ const PersonProfile = () => {
     }
   }, [isQualificationsDisabled, activeTab]);
 
+
+  const validFields = fieldConfig.filter(
+    ({ key }) =>
+      personProfile?.[key] &&
+      personProfile?.[key].toString().trim() !== ""
+  );
+
   if (isLoadingPersonProfile) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -129,7 +136,7 @@ const PersonProfile = () => {
               {personProfile.image_url != null ? (
                 <img
                   className="block"
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  style={{ width: "100%", height: "100%", objectFit: "contain" }}
                   src={imageStorageBaseUrl + personProfile.image_url}
                   alt={personProfile?.name}
                 />
@@ -155,23 +162,8 @@ const PersonProfile = () => {
 
             {/* Info Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-5">
-              {(() => {
-                const validFields = fieldConfig.filter(
-                  ({ key }) =>
-                    personProfile?.[key] &&
-                    personProfile?.[key].toString().trim() !== ""
-                );
-
-                if (validFields.length === 0) {
-                  return (
-
-                    <div className="col-span-full flex items-center justify-start py-1 text-center text-xs text-accent italic">
-                      Data is being collected...
-                    </div>
-                  );
-                }
-
-                return validFields.map(({ key, label, icon: Icon }) => (
+              {validFields.length > 0 ? (
+                validFields.map(({ key, label, icon: Icon }) => (
                   <div key={key} className="flex items-start gap-3">
                     <div className="mt-0.5 flex-shrink-0 w-7 h-7 rounded-md bg-gray-50 dark:bg-transparent dark:border-gray-700 border border-gray-100 flex items-center justify-center">
                       <Icon size={14} className="text-accent" />
@@ -185,29 +177,33 @@ const PersonProfile = () => {
                       </p>
                     </div>
                   </div>
-                ));
-              })()}
+                ))
+              ) : (
+                <div className="col-span-full flex items-center justify-start py-1 text-center text-xs text-accent italic">
+                  Data is being collected...
+                </div>
+              )}
 
               {/* Ministries Worked At */}
-              <div className="flex items-start gap-3">
-                <div className="mt-0.5 flex-shrink-0 w-7 h-7 rounded-md bg-gray-50 bg-gray-50 dark:bg-transparent dark:border-gray-700 border border-gray-100 flex items-center justify-center">
-                  <Building2 size={14} className="text-accent" />
-                </div>
-                <div>
-                  <p className="flex items-center gap-1.5 text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-0.5 ">
-                    Ministries Worked At
-                    {workedAsPresident > 0 && (
+              {workedMinistries > 0 && (
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 flex-shrink-0 w-7 h-7 rounded-md bg-gray-50 bg-gray-50 dark:bg-transparent dark:border-gray-700 border border-gray-100 flex items-center justify-center">
+                    <Building2 size={14} className="text-accent" />
+                  </div>
+                  <div>
+                    <p className="flex items-center gap-1.5 text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-0.5 ">
+                      Ministries Worked At
                       <InfoTooltip
                         message="This may include ministers inherited from the previous administration before the president released their own cabinet."
                         placement="right"
                         iconColor="#aaa"
                         iconSize={11}
                       />
-                    )}
-                  </p>
-                  <p className="text-sm text-gray-800 dark:text-white">{workedMinistries}</p>
+                    </p>
+                    <p className="text-sm text-gray-800 dark:text-white">{workedMinistries}</p>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Worked as President */}
               {workedAsPresident > 0 && (
