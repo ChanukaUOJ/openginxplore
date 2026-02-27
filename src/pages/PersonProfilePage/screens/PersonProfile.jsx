@@ -49,7 +49,30 @@ const PersonProfile = () => {
     (rel) => rel.id === selectedPerson?.id
   ).length;
 
-  const { data: personProfile, isLoading: isLoadingPersonProfile, error } = usePersonProfile(personId);
+  // const { data: personProfile, isLoading: isLoadingPersonProfile, error } = usePersonProfile(personId);
+
+  // const isQualificationsDisabled =
+  //   !personProfile?.education_qualifications &&
+  //   !personProfile?.professional_qualifications;
+
+  // useEffect(() => {
+  //   if (isQualificationsDisabled && activeTab === "qualifications") {
+  //     setActiveTab("history");
+  //   }
+  // }, [isQualificationsDisabled, activeTab]);
+
+  const personProfile = {
+    name: "Ranil Wickremesinghe",
+    political_party: "United National Party",
+    date_of_birth: "1949-03-24",
+    age: 75,
+    profession: "Lawyer",
+    religion: "Buddhist",
+    phone_number: "1234567890",
+    email: "[EMAIL_ADDRESS]",
+    education_qualifications: "Bac",
+    professional_qualifications: "null",
+  }
 
   const isQualificationsDisabled =
     !personProfile?.education_qualifications &&
@@ -60,6 +83,9 @@ const PersonProfile = () => {
       setActiveTab("history");
     }
   }, [isQualificationsDisabled, activeTab]);
+
+  const isLoadingPersonProfile = false;
+  const error = false;
 
   if (isLoadingPersonProfile) {
     return (
