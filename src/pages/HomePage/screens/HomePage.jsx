@@ -17,7 +17,7 @@ import ThemeToggle from "../../../components/theme-toggle";
 import ShareLinkButton from "../../../components/ShareLinkButton";
 import SearchBar from "../../../components/SearchBar";
 import SearchPage from "../../SearchPage/screens/SearchPage";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import SlFlag from "/sl_flag.png";
 
 const feedbackFormUrl = window?.configs?.feedbackFormUrl
