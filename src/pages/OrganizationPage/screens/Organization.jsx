@@ -2,24 +2,25 @@ import GazetteTimeline from "../components/GazetteTimeline";
 import MinistryCardGrid from "../components/MinistryCardGrid";
 import { useDispatch, useSelector } from "react-redux";
 import { useCallback, useEffect, useState, useRef } from "react";
-import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams, useOutletContext, useParams, Outlet } from "react-router-dom";
 import FilteredPresidentCards from "../components/FilteredPresidentCards";
 import CabinetFlow from "../../cabinetFlowPage/screens/CabinetFlow"
 import LandscapeRequired from "../../../components/landscapeRequired";
 import { setSelectedDate } from "../../../store/presidencySlice";
 import { resolveGazetteDateOnOrBefore } from "../../../utils/gazetteDateUtils";
 
-const Organization = ({ dateRange }) => {
+const Organization = () => {
+  const location = useLocation();
+  const activeView = location.pathname.includes("/changes") ? "changes" : "structure";
+  const { dateRange } = useOutletContext();
   const dispatch = useDispatch();
   const { selectedDate, selectedPresident } = useSelector(
     (state) => state.presidency
   );
   const gazetteData = useSelector((state) => state.gazettes.gazetteData);
 
-  const location = useLocation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [activeView, setActiveView] = useState(searchParams.get('view') || 'structure');
   const [multiSelectedDates, setMultiSelectedDates] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     const datesParam = params.get('compareDates');
@@ -123,28 +124,18 @@ const Organization = ({ dateRange }) => {
     }
   }, [selectedPresident, gazetteData, activeView, dispatch, setSearchParams, selectedDate]);
 
-  useEffect(() => {
-    const view = searchParams.get("view") || "structure";
-    setActiveView(view);
-  }, [searchParams]);
-
-
   const handleMinistryNodeClick = useCallback((node) => {
     const resolvedDate = resolveGazetteDateOnOrBefore(node.time, gazetteData);
     dispatch(setSelectedDate({ date: resolvedDate }));
     const params = new URLSearchParams(window.location.search);
     params.delete("compareDates");
-    params.set("view", "structure");
     params.set("selectedDate", resolvedDate);
     params.set("ministry", node.id);
-    setSearchParams(params);
-    setActiveView("structure");
-  }, [dispatch, setSearchParams, gazetteData]);
+    navigate(`/executive-branch/structure?${params.toString()}`, { replace: true });
+  }, [dispatch, gazetteData, navigate]);
 
   const toggleView = (viewName) => {
-    setActiveView(viewName);
     const params = new URLSearchParams(window.location.search);
-    params.set("view", viewName);
     if (viewName === "changes") {
       params.delete("selectedDate");
       params.delete("ministry");
@@ -176,7 +167,7 @@ const Organization = ({ dateRange }) => {
         }
       }
     }
-    setSearchParams(params);
+    navigate(`/executive-branch/${viewName}?${params.toString()}`);
   };
 
   const { president } = location.state || {};
@@ -239,24 +230,41 @@ const Organization = ({ dateRange }) => {
         />
 
 
-        {/* Conditional rendering based on active view */}
-        {activeView === "structure" ? (
-          <>
-            {selectedPresident && <>{selectedDate != null && <MinistryCardGrid />}</>}
-          </>
-        ) : (
-          <LandscapeRequired onBack={() => toggleView("structure")}>
-            <CabinetFlow
-              key={selectedPresident?.id}
-              presidentId={selectedPresident?.id}
-              dateRange={dateRange}
-              selectedDates={multiSelectedDates}
-              onMinistryNodeClick={handleMinistryNodeClick}
-            />
-          </LandscapeRequired>
-        )}
+        {/* Use Outlet to render the nested view */}
+        <Outlet context={{
+          toggleView,
+          selectedPresident,
+          dateRange,
+          multiSelectedDates,
+          handleMinistryNodeClick
+        }} />
       </div>
     </div>
+  );
+};
+
+export const StructureView = () => {
+  const { selectedPresident } = useOutletContext();
+  const selectedDate = useSelector((state) => state.presidency.selectedDate);
+  return (
+    <>
+      {selectedPresident && <>{selectedDate != null && <MinistryCardGrid />}</>}
+    </>
+  );
+};
+
+export const ChangesView = () => {
+  const { toggleView, selectedPresident, dateRange, multiSelectedDates, handleMinistryNodeClick } = useOutletContext();
+  return (
+    <LandscapeRequired onBack={() => toggleView("structure")}>
+      <CabinetFlow
+        key={selectedPresident?.id}
+        presidentId={selectedPresident?.id}
+        dateRange={dateRange}
+        selectedDates={multiSelectedDates}
+        onMinistryNodeClick={handleMinistryNodeClick}
+      />
+    </LandscapeRequired>
   );
 };
 
