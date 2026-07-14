@@ -5,17 +5,37 @@ import DataLoadingAnimatedComponent from "./pages/SplashPage/screens/dataLoading
 import DocsPage from "./pages/DocsPage/screens/DocsPage";
 import OfflineBanner from "./components/OfflineBanner";
 import { usePageTracking } from "./hooks/usePageTracking";
+import HomePage from "./pages/HomePage/screens/HomePage";
+import Organization, { StructureView, ChangesView } from "./pages/OrganizationPage/screens/Organization";
+import DataPage from "./pages/DataPage/screens/DataPage";
+import SearchPage from "./pages/SearchPage/screens/SearchPage";
+
+import PersonProfile from "./pages/PersonProfilePage/screens/PersonProfile";
+import DepartmentProfile from "./pages/DepartmentPage/screens/DepartmentProfile";
 
 const AppRoutes = () => {
   usePageTracking();
 
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/executive-branch?view=structure" replace />} />
-      <Route path="/person-profile/:personId" element={<DataLoadingAnimatedComponent mode="person-profile" />} />
-      <Route path="/department-profile/:departmentId" element={<DataLoadingAnimatedComponent mode="department-profile" />} />
-      <Route path="/docs" element={<DocsPage />} />
-      <Route path="/:tab" element={<DataLoadingAnimatedComponent mode="orgchart" />} />
+      <Route path="/" element={<Navigate to="/executive-branch/structure" replace />} />
+      <Route path="docs" element={<DocsPage />} />
+
+      <Route element={<DataLoadingAnimatedComponent />}>
+        <Route element={<HomePage />}>
+          <Route path="executive-branch" element={<Organization />}>
+            <Route index element={<Navigate to="/executive-branch/structure" replace />} />
+            <Route path="structure" element={<StructureView />} />
+            <Route path="changes" element={<ChangesView />} />
+            <Route path="*" element={<Navigate to="/executive-branch/structure" replace />} />
+          </Route>
+          <Route path="data" element={<DataPage />} />
+          <Route path="search" element={<SearchPage />} />
+        </Route>
+        <Route path="person-profile/:personId" element={<PersonProfile />} />
+        <Route path="department-profile/:departmentId" element={<DepartmentProfile />} />
+      </Route>
+
       <Route path="*" element={<Error404 />} />
     </Routes>
   );

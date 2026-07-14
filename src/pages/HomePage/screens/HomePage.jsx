@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import DataPage from "../../DataPage/screens/DataPage";
 import TimeRangeSelector from "../components/TimeRangeSelector";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, Outlet, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import TextLogo from "../components/textLogo";
 import Organization from "../../OrganizationPage/screens/Organization";
@@ -27,16 +27,19 @@ const feedbackFormUrl = window?.configs?.feedbackFormUrl
 export default function HomePage() {
   const [isExpanded, setIsExpanded] = useState(window.innerWidth >= 768);
   const navigate = useNavigate();
-  const { tab } = useParams();
+  const location = useLocation();
 
-  const validTabs = ["executive-branch", "data", "search"];
-
-  const selectedTab = tab || "executive-branch";
+  // Dynamically grab the first part of the URL (e.g., "data" from "/data" or "executive-branch" from "/executive-branch/structure")
+  // If the path is somehow empty, default to "executive-branch"
+  const pathSegments = location.pathname.split("/").filter(Boolean);
+  const selectedTab = pathSegments[0] || "executive-branch";
 
   const gazetteDateClassic = useSelector(
     (state) => state.gazettes.gazetteDataClassic
   );
 
+
+  const [searchParams] = useSearchParams();
 
   const [userSelectedDateRange, setUserSelectedDateRange] = useState([
     null,
@@ -44,9 +47,8 @@ export default function HomePage() {
   ]);
   const [externalDateRange, setExternalDateRange] = useState([null, null]);
   const [activePreset, setActivePreset] = useState(() => {
-    const params = new URLSearchParams(window.location.search);
-    const startDateParam = params.get("startDate");
-    if (!startDateParam) return "All"; // no URL startDate → default to "All"
+    const startDateParam = searchParams.get("startDate");
+    if (!startDateParam) return "All";
 
     const today = new Date();
     const urlStart = new Date(startDateParam);
@@ -57,10 +59,9 @@ export default function HomePage() {
     if (Math.abs(diffYears - 3) < 0.1) return "3Y";
     if (Math.abs(diffYears - 5) < 0.1) return "5Y";
 
-    // startDate matches the earliest possible year (i.e. "All" was selected)
     if (urlStart.getFullYear() <= 2019) return "All";
 
-    return null; // custom range — no preset highlighted
+    return null;
   });
   const [activePresident, setActivePresident] = useState("");
 
@@ -74,35 +75,24 @@ export default function HomePage() {
     gazetteDateClassic && gazetteDateClassic.map((d) => `${d.date}T00:00:00Z`);
 
   const handleTabChange = (tabName) => {
-    const params = new URLSearchParams(window.location.search);
+    // Clone current search params so we don't mutate state directly
+    const params = new URLSearchParams(searchParams);
 
-    // Common resets for all tab changes to ensure a fresh start
-    // params.delete("startDate");
-    // params.delete("endDate");
-    params.delete("selectedDate");
-    params.delete("filterByName");
-    params.delete("filterByType");
-    params.delete("ministry");
-    params.delete("viewMode");
-
+    // We no longer delete the search parameters here. 
+    // Preserving them allows the user's state (selected date, active ministry card, search filters) 
+    // to remain intact when they switch back and forth between the Data and Executive Branch tabs!
     if (tabName === "executive-branch") {
       params.delete("categoryIds");
       params.delete("datasetId");
       params.delete("datasetName");
       params.delete("breadcrumb");
     }
-    if (tabName === "data") {
-      // Data-specific deletes (if any were not covered in common resets)
-    }
+
     navigate({
       pathname: `/${tabName}`,
       search: params.toString() ? `?${params.toString()}` : "",
     });
   };
-
-  if (tab && !validTabs.includes(tab)) {
-    return <Error404 />;
-  }
 
   return (
     <div className="flex">
@@ -233,13 +223,7 @@ export default function HomePage() {
             />
           )}
 
-          {selectedTab === "executive-branch" ? (
-            <Organization dateRange={userSelectedDateRange} />
-          ) : selectedTab === "data" ? (
-            <DataPage setExternalDateRange={setExternalDateRange} />
-          ) : selectedTab === "search" ? (
-            <SearchPage />
-          ) : null}
+          <Outlet context={{ dateRange: userSelectedDateRange, setExternalDateRange }} />
         </div>
       </div>
     </div>
