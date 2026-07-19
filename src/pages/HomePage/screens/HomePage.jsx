@@ -75,7 +75,6 @@ export default function HomePage() {
     gazetteDateClassic && gazetteDateClassic.map((d) => `${d.date}T00:00:00Z`);
 
   const handleTabChange = (tabName) => {
-    // Clone current search params so we don't mutate state directly
     const params = new URLSearchParams(searchParams);
 
     // We no longer delete the search parameters here. 

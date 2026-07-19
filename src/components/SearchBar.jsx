@@ -135,7 +135,7 @@ export default function SearchBar() {
 
               // If user manually clears the search bar, remove search-related params from URL
               if (val === "") {
-                const params = new URLSearchParams(window.location.search);
+                const params = new URLSearchParams(searchParams);
                 params.delete("q");
                 params.delete("filterByName");
                 params.delete("datasetName");

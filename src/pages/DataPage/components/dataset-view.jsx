@@ -3,7 +3,7 @@ import { useEffect, useState, useMemo } from "react";
 import { ClipLoader } from "react-spinners";
 import { ChartVisualization } from "./chart-visualization";
 import { AlertCircle } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useThemeContext } from "../../../context/themeContext";
 import { useAvailableYearsForDataset } from "../../../hooks/useAvailableYearsForDataset";
 import { useGetDatasetsByYears } from "../../../hooks/useGetDatasetsByYears";
@@ -12,6 +12,7 @@ import LandscapeRequired from "../../../components/landscapeRequired";
 
 export function DatasetView({ data, setExternalDateRange }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const { isDark } = useThemeContext();
 
   const [selectedYears, setSelectedYears] = useState([]);
@@ -280,7 +281,7 @@ export function DatasetView({ data, setExternalDateRange }) {
         <div className="overflow-x-auto">
           {fetchedDatasets.length > 0 ? (
             <>
-              <LandscapeRequired onBack={() => window.history.back()}>
+              <LandscapeRequired onBack={() => navigate(-1)}>
                 <ChartVisualization
                   columns={stableColumns}
                   yearlyData={stableYearlyData}
