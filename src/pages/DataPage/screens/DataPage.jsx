@@ -9,7 +9,7 @@ import { useDataCatalog } from "../../../hooks/useDataCatalog";
 
 export default function DataPage() {
   const { setExternalDateRange } = useOutletContext();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -20,11 +20,13 @@ export default function DataPage() {
   // Clean up URL parameters that don't belong in the data route
   useEffect(() => {
     if (searchParams.has("filterByName")) {
-      const params = new URLSearchParams(searchParams);
-      params.delete("filterByName");
-      navigate(`${location.pathname}?${params.toString()}`, { replace: true });
+      setSearchParams(prev => {
+        const next = new URLSearchParams(prev);
+        next.delete("filterByName");
+        return next;
+      }, { replace: true });
     }
-  }, [searchParams, location.pathname, navigate]);
+  }, [searchParams, setSearchParams]);
 
   // Decode categoryIds from URL as an array
   const categoryIdsParam = searchParams.get("categoryIds") || "";
@@ -116,10 +118,10 @@ export default function DataPage() {
       setBreadcrumbTrail(newBreadcrumb);
       setLoadingCardId(cardId);
 
-      const params = new URLSearchParams(window.location.search);
+      const params = new URLSearchParams(searchParams);
       params.set("categoryIds", JSON.stringify(categoryIdsArray));
       params.set("breadcrumb", jsonTrail);
-      navigate(`${location.pathname}?${params.toString()}`);
+      navigate({ pathname: location.pathname, search: `?${params.toString()}` });
     }
   };
 
@@ -152,11 +154,11 @@ export default function DataPage() {
       setBreadcrumbTrail(newBreadcrumb);
       setLoadingCardId(datasetName);
 
-      const params = new URLSearchParams(window.location.search);
+      const params = new URLSearchParams(searchParams);
       params.set("datasetName", datasetName);
       params.set("categoryIds", JSON.stringify(categoryIds));
       params.set("breadcrumb", jsonTrail);
-      navigate(`${location.pathname}?${params.toString()}`);
+      navigate({ pathname: location.pathname, search: `?${params.toString()}` });
     }
 
     setSelectedDataset(dataset);
@@ -164,7 +166,12 @@ export default function DataPage() {
 
   const handleBreadcrumbClick = (index) => {
     if (index === -1) {
-      navigate("/data");
+      const params = new URLSearchParams(searchParams);
+      params.delete("categoryIds");
+      params.delete("datasetId");
+      params.delete("datasetName");
+      params.delete("breadcrumb");
+      navigate({ pathname: "/data", search: params.toString() ? `?${params.toString()}` : "" });
       return;
     }
 
@@ -175,7 +182,7 @@ export default function DataPage() {
     setSelectedDataset(null);
     setLoadingCardId(null);
 
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(searchParams);
 
     if (selectedItem.categoryIds) {
       params.set("categoryIds", JSON.stringify(selectedItem.categoryIds));
@@ -189,7 +196,7 @@ export default function DataPage() {
       params.delete("datasetName");
     }
 
-    // When we navigate TO an item, it becomes the new leaf. 
+    // When we navigate TO an item, it becomes the new leaf.
     // We should strip its data for the URL version to keep it clean.
     const trailForUrl = newTrail.map((item, i) => {
       if (i === newTrail.length - 1) {
@@ -200,7 +207,7 @@ export default function DataPage() {
 
     setBreadcrumbTrail(newTrail);
     params.set("breadcrumb", JSON.stringify(trailForUrl));
-    navigate(`${location.pathname}?${params.toString()}`);
+    navigate({ pathname: location.pathname, search: `?${params.toString()}` });
   };
 
   return (

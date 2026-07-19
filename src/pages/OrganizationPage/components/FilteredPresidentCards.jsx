@@ -6,7 +6,7 @@ import {
   setSelectedDate,
 } from "../../../store/presidencySlice";
 import { setGazetteData } from "../../../store/gazetteDate";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { EyeIcon } from "lucide-react";
 import useNetworkStatus from "../../../hooks/useNetworkStatus";
 import PersonAvatar from "../../../components/PersonAvatar";
@@ -31,7 +31,14 @@ export default function FilteredPresidentCards({ dateRange = [null, null] }) {
   // When true, the dateRange (slider) effect skips auto-switching presidents.
 
 
-  const location = useLocation()
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Ref always holds the latest searchParams without causing extra effect re-runs
+  const searchParamsRef = useRef(searchParams);
+  useEffect(() => {
+    searchParamsRef.current = searchParams;
+  });
 
   const filteredPresidents = useMemo(() => {
     if (!presidents) return [];
@@ -134,7 +141,7 @@ export default function FilteredPresidentCards({ dateRange = [null, null] }) {
       return;
     if (!gazetteDateClassic || gazetteDateClassic.length === 0) return;
 
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(searchParams);
     let urlSelectedDate = params.get("selectedDate");
     let urlStartDate = params.get("startDate");
     let urlEndDate = params.get("endDate");
@@ -162,10 +169,12 @@ export default function FilteredPresidentCards({ dateRange = [null, null] }) {
           urlStartDate = `${year}-01-01`;
           urlEndDate = `${year}-12-31`;
 
-          const url = new URL(window.location.href);
-          url.searchParams.set("startDate", urlStartDate);
-          url.searchParams.set("endDate", urlEndDate);
-          window.history.replaceState({}, "", url.toString());
+          setSearchParams(prev => {
+            const next = new URLSearchParams(prev);
+            next.set("startDate", urlStartDate);
+            next.set("endDate", urlEndDate);
+            return next;
+          }, { replace: true });
         }
       }
     }
@@ -197,7 +206,7 @@ export default function FilteredPresidentCards({ dateRange = [null, null] }) {
         setInitializedFromUrl(true);
         setUrlInitComplete(true);
 
-        lastProcessedUrlRef.current = window.location.search;
+        lastProcessedUrlRef.current = location.search;
         return;
       }
     }
@@ -236,8 +245,8 @@ export default function FilteredPresidentCards({ dateRange = [null, null] }) {
     }
 
     // Check if this date range change matches the URL we just processed
-    const currentUrlSearch = window.location.search;
-    const params = new URLSearchParams(currentUrlSearch);
+    const currentUrlSearch = location.search;
+    const params = new URLSearchParams(searchParamsRef.current);
     const urlStartDate = params.get("startDate");
     const urlEndDate = params.get("endDate");
     const hasFilterByName = params.get("filterByName");
@@ -291,17 +300,18 @@ export default function FilteredPresidentCards({ dateRange = [null, null] }) {
     }
 
     prevDateRangeRef.current = dateRange;
-  }, [dateRange, filteredPresidents, initializedFromUrl, urlInitComplete, location.search, selectedDate?.date]);
+  }, [dateRange, filteredPresidents, initializedFromUrl, urlInitComplete, selectedDate?.date]);
 
   useEffect(() => {
     if (!selectedDate?.date) return;
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("view") === "changes") return;
-
     if (!initializedFromUrl) return;
 
-    const urlSelectedDate = params.get("selectedDate");
-    const urlMinistry = params.get("ministry");
+    // Read from ref so this effect doesn't re-fire on every setSearchParams call
+    const currentParams = searchParamsRef.current;
+    if (currentParams.get("view") === "changes") return;
+
+    const urlSelectedDate = currentParams.get("selectedDate");
+    const urlMinistry = currentParams.get("ministry");
     const reduxDate = selectedDate.date;
 
     // Don't clobber a ministry deep link while Redux is still catching up to the URL
@@ -309,13 +319,17 @@ export default function FilteredPresidentCards({ dateRange = [null, null] }) {
       return;
     }
 
-    const url = new URL(window.location.href);
-    url.searchParams.set("selectedDate", reduxDate);
-    if (urlSelectedDate && urlSelectedDate !== reduxDate) {
-      url.searchParams.delete("ministry");
-    }
-    window.history.replaceState({}, "", url.toString());
-  }, [selectedDate, location.search, initializedFromUrl]);
+    if (urlSelectedDate === reduxDate) return; // Already in sync
+
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.set("selectedDate", reduxDate);
+      if (urlSelectedDate && urlSelectedDate !== reduxDate) {
+        next.delete("ministry");
+      }
+      return next;
+    }, { replace: true });
+  }, [selectedDate, initializedFromUrl, setSearchParams]);
 
   // Monitor URL parameter changes when already on /executive-branch route
   useEffect(() => {
@@ -377,7 +391,7 @@ export default function FilteredPresidentCards({ dateRange = [null, null] }) {
       // Mark this URL as processed after successful update
       lastProcessedUrlRef.current = currentUrlSearch;
     }
-  }, [location.search, location.key, initializedFromUrl, presidents, presidentRelationDict, gazetteDateClassic]);
+  }, [location.key, initializedFromUrl, presidents, presidentRelationDict, gazetteDateClassic]);
 
 
   return (

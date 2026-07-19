@@ -3,7 +3,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useSelector } from "react-redux";
 import utils from "../../../utils/utils";
-import { useLocation } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import useClickOutside from "../../../hooks/useClickOutside";
 
@@ -25,6 +25,7 @@ export default function TimeRangeSelector({
     (state) => state.presidency.presidentRelationDict
   );
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const containerRef = useRef(null);
   const dragStartRef = useRef(null);
   const scrollWrapperRef = useRef(null);
@@ -43,10 +44,9 @@ export default function TimeRangeSelector({
 
   // Consolidate URL parsing for initial state
   const getInitialDates = () => {
-    const params = new URLSearchParams(window.location.search);
-    const startDateParam = params.get("startDate");
-    const endDateParam = params.get("endDate");
-    const selectedDateParam = params.get("selectedDate");
+    const startDateParam = searchParams.get("startDate");
+    const endDateParam = searchParams.get("endDate");
+    const selectedDateParam = searchParams.get("selectedDate");
 
     const minDate = new Date(`${startYear}-01-01`);
     const maxDate = new Date();
@@ -139,34 +139,34 @@ export default function TimeRangeSelector({
   useEffect(() => {
     if (!startDate || !endDate) return;
 
-    const params = new URLSearchParams(window.location.search);
     const newStart = startDate.toISOString().split("T")[0];
     const newEnd = endDate.toISOString().split("T")[0];
 
-    // Check if URL already matches. Use ISO string comparison to match UTC dates.
-    const urlStart = params.get("startDate");
-    const urlEnd = params.get("endDate");
+    // Use functional updater so we always operate on the latest params,
+    // and React Router stays in sync with the URL.
+    setSearchParams(prev => {
+      if (prev.get("startDate") === newStart && prev.get("endDate") === newEnd) return prev;
+      const next = new URLSearchParams(prev);
+      next.set("startDate", newStart);
+      next.set("endDate", newEnd);
+      return next;
+    }, { replace: true });
+  }, [startDate, endDate, setSearchParams]);
 
-    if (urlStart === newStart && urlEnd === newEnd) return;
-
-    // Only update if current URL is missing dates OR if the change seems to be 
-    // internal (i.e. path hasn't changed, but dates did)
-    // Actually, if we are transitioning to a NEW path, we should let that path's 
-    // initial parameters win.
-    params.set("startDate", newStart);
-    params.set("endDate", newEnd);
-
-    const path = location.pathname;
-    window.history.replaceState({}, "", `${path}?${params.toString()}`);
-  }, [startDate, endDate]); // Remove location.pathname from deps to avoid overwriting on navigation
+  // Keep a ref to always-latest searchParams so the location-key effect
+  // can read fresh params without triggering on every setSearchParams call.
+  const searchParamsRef = useRef(searchParams);
+  useEffect(() => {
+    searchParamsRef.current = searchParams;
+  });
 
   useEffect(() => {
-    // We use window.location.search directly to ensure we have the latest params
-    // regardless of the searchParams hook state or router updates.
-    const params = new URLSearchParams(window.location.search);
-    const startDateParam = params.get("startDate");
-    const endDateParam = params.get("endDate");
-    const selectedDateParam = params.get("selectedDate");
+    // searchParamsRef.current is always the latest params but is NOT a dep,
+    // so this effect only fires on real navigation (location.key changes).
+    const currentParams = searchParamsRef.current;
+    const startDateParam = currentParams.get("startDate");
+    const endDateParam = currentParams.get("endDate");
+    const selectedDateParam = currentParams.get("selectedDate");
 
     const minDate = new Date(`${startYear}-01-01`);
     const maxDate = new Date();
@@ -243,7 +243,7 @@ export default function TimeRangeSelector({
       setActivePreset(null);
       setActivePresident("");
     }
-  }, [defaultStartDate, location.key, location.search]);
+  }, [defaultStartDate, location.key]);
 
   const presidents = useMemo(() => {
     if (!presidentsArray || !presidentRelationDict) return {};

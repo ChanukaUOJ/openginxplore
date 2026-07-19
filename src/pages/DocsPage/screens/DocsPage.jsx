@@ -4,18 +4,26 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { CopyButton } from "../components/CopyButton";
 import { TextWithCitations } from "../components/TextWithCitation";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 
 const GITHUB_USERNAME = "ldflk";
 const REPO_NAME = "openginxplore";
 const DOCS_BRANCH = "main";
 
+// origin (protocol + host) never changes within a session;
+// React Router does not expose this — only pathname/search/hash.
+const { origin } = window.location;
+
 export default function DocsPage() {
+    const navigate = useNavigate();
+    const location = useLocation();
+    const [searchParams] = useSearchParams();
     const [files, setFiles] = useState([]);
     const [activeFile, setActiveFile] = useState(null);
     const [content, setContent] = useState("");
     const [headings, setHeadings] = useState([]);
     const [currentHash, setCurrentHash] = useState(
-        window.location.hash?.replace("#", "") || ""
+        location.hash?.replace("#", "") || ""
     );
     const [collapsedSections, setCollapsedSections] = useState(new Set());
     const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 768);
@@ -39,19 +47,16 @@ export default function DocsPage() {
 
     // parse URL once on mount
     useEffect(() => {
-        const params = new URLSearchParams(window.location.search);
-        const fileParam = params.get("file");
-        const hash = window.location.hash?.replace("#", "") || null;
+        const fileParam = searchParams.get("file");
+        const hash = location.hash?.replace("#", "") || null;
         if (fileParam) pendingFileRef.current = fileParam;
         if (hash) pendingHashRef.current = hash;
     }, []);
 
-    // update currentHash state when URL hash changes
+    // update currentHash state when URL hash changes (via browser back/forward)
     useEffect(() => {
-        const handleHashChange = () => setCurrentHash(window.location.hash.replace("#", ""));
-        window.addEventListener("hashchange", handleHashChange);
-        return () => window.removeEventListener("hashchange", handleHashChange);
-    }, []);
+        setCurrentHash(location.hash?.replace("#", "") || "");
+    }, [location.hash]);
 
     // fetch docs list
     useEffect(() => {
@@ -170,11 +175,10 @@ export default function DocsPage() {
                 const pendingHash = pendingHashRef.current;
                 const pendingFile = pendingFileRef.current;
 
-                // Update URL with hash if pending, otherwise just file
                 const newUrl = (pendingHash && pendingFile === fileSlug)
                     ? `?file=${fileSlug}#${pendingHash}`
                     : `?file=${fileSlug}`;
-                window.history.replaceState(null, "", newUrl);
+                navigate(newUrl, { replace: true });
 
                 if (pendingHash && pendingFile === fileSlug) {
                     const targetDomId = `${fileSlug}-${pendingHash}`;
@@ -214,7 +218,7 @@ export default function DocsPage() {
             el.scrollIntoView({ behavior: "smooth", block: "start" });
             const fileSlug = activeFile.slug || activeFile.file.replace(".md", "");
             const newUrl = `?file=${fileSlug}#${h.hash}`;
-            window.history.replaceState(null, "", newUrl);
+            navigate(newUrl, { replace: true });
             setCurrentHash(h.hash);
 
             // Auto-expand parent section if clicking a child heading
@@ -296,7 +300,7 @@ export default function DocsPage() {
                 setCurrentHash(activeHeading.hash);
                 const fileSlug = activeFile.slug || activeFile.file.replace(".md", "");
                 const newUrl = `?file=${fileSlug}#${activeHeading.hash}`;
-                window.history.replaceState(null, "", newUrl);
+                navigate(newUrl, { replace: true });
 
                 // Auto-expand parent section when scrolling into a child heading
                 if (activeHeading.level === 3) {
@@ -368,12 +372,12 @@ export default function DocsPage() {
                                                 isManualScrollRef.current = false;
                                             }, 1000);
                                         }
-                                        window.history.replaceState(null, "", `?file=${fileSlug}`);
+                                        navigate(`?file=${fileSlug}`, { replace: true });
                                         setCurrentHash("");
                                     }
                                     else {
                                         // Different file - clear hash
-                                        window.history.replaceState(null, "", `?file=${fileSlug}`);
+                                        navigate(`?file=${fileSlug}`, { replace: true });
                                         setActiveFile(f);
                                     }
                                 }}
@@ -479,7 +483,7 @@ export default function DocsPage() {
                             const headingData = headings.find((h) => h.id === id);
                             const showLink = Boolean(headingData); // only show if it's a real heading with hash
                             const link = showLink
-                                ? `${window.location.origin}${window.location.pathname}?file=${activeFile?.slug || activeFile?.file.replace(".md", "")}#${headingData.hash}`
+                                ? `${origin}${location.pathname}?file=${activeFile?.slug || activeFile?.file.replace(".md", "")}#${headingData.hash}`
                                 : null;
 
                             return (
@@ -500,7 +504,7 @@ export default function DocsPage() {
                             const headingData = headings.find((h) => h.id === id);
                             const showLink = Boolean(headingData);
                             const link = showLink
-                                ? `${window.location.origin}${window.location.pathname}?file=${activeFile?.slug || activeFile?.file.replace(".md", "")}#${headingData.hash}`
+                                ? `${origin}${location.pathname}?file=${activeFile?.slug || activeFile?.file.replace(".md", "")}#${headingData.hash}`
                                 : null;
 
                             return (
@@ -521,7 +525,7 @@ export default function DocsPage() {
                             const headingData = headings.find((h) => h.id === id);
                             const showLink = Boolean(headingData);
                             const link = showLink
-                                ? `${window.location.origin}${window.location.pathname}?file=${activeFile?.slug || activeFile?.file.replace(".md", "")}#${headingData.hash}`
+                                ? `${origin}${location.pathname}?file=${activeFile?.slug || activeFile?.file.replace(".md", "")}#${headingData.hash}`
                                 : null;
 
                             return (

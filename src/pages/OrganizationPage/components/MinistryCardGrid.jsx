@@ -4,7 +4,7 @@ import {
 
 import { useEffect, useRef, useState, useMemo } from "react";
 import { useSelector } from "react-redux";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
 import { useThemeContext } from "../../../context/themeContext";
 import useUrlParamState from "../../../hooks/singleSharingURL";
@@ -53,6 +53,7 @@ const MinistryCardGrid = () => {
   const { colors } = useThemeContext();
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const { data, isLoading } = useActivePortfolioList(
     selectedPresident?.id,
@@ -69,8 +70,7 @@ const MinistryCardGrid = () => {
 
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const ministryId = params.get("ministry");
+    const ministryId = searchParams.get("ministry");
 
     if (!ministryId) {
       setSelectedCard(null);
@@ -91,7 +91,7 @@ const MinistryCardGrid = () => {
       setActiveTab("departments");
       setActiveStep(1);
     }
-  }, [location.search, activeMinistryList, viewMode]);
+  }, [searchParams, activeMinistryList, viewMode]);
 
   const {
     data: primeMinisterData,
@@ -179,10 +179,10 @@ const MinistryCardGrid = () => {
       const newStep = prevActiveStep - 1;
 
       if (newStep === 0) {
-        const params = new URLSearchParams(window.location.search);
+        const params = new URLSearchParams(searchParams);
         params.delete("ministry");
 
-        const newUrl = `${window.location.pathname}?${params.toString()}`;
+        const newUrl = `${location.pathname}?${params.toString()}`;
         navigate(newUrl);
       }
 
@@ -201,7 +201,7 @@ const MinistryCardGrid = () => {
     }
 
     if (selectedDate?.date && prevDateRef.current && selectedDate.date !== prevDateRef.current) {
-      const params = new URLSearchParams(window.location.search);
+      const params = new URLSearchParams(searchParams);
       const isDeepLinkSync =
         params.get("ministry") &&
         params.get("selectedDate") === selectedDate.date;
@@ -210,7 +210,7 @@ const MinistryCardGrid = () => {
         if (params.has("ministry")) {
           params.delete("ministry");
           params.set("selectedDate", selectedDate.date);
-          navigate(`${window.location.pathname}?${params.toString()}`);
+          navigate(`${location.pathname}?${params.toString()}`);
         }
 
         setActiveStep(0);
@@ -227,9 +227,9 @@ const MinistryCardGrid = () => {
     setSelectedCard(card);
     setActiveTab("departments");
 
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(searchParams);
     params.set("ministry", card.id);
-    const newUrl = `${window.location.pathname}?${params.toString()}`;
+    const newUrl = `${location.pathname}?${params.toString()}`;
     navigate(newUrl);
   };
 
@@ -1322,7 +1322,7 @@ const MinistryCardGrid = () => {
                     })}
                   </Stepper>
                 ) : (
-                  <LandscapeRequired onBack={() => window.history.back()}>
+                  <LandscapeRequired onBack={() => navigate(-1)}>
                     <GraphComponent
                       activeMinistries={filteredMinistryList}
                       filterType={filterType}

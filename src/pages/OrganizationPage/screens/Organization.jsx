@@ -1,11 +1,8 @@
 import GazetteTimeline from "../components/GazetteTimeline";
-import MinistryCardGrid from "../components/MinistryCardGrid";
 import { useDispatch, useSelector } from "react-redux";
 import { useCallback, useEffect, useState, useRef } from "react";
-import { useLocation, useNavigate, useSearchParams, useOutletContext, useParams, Outlet } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams, useOutletContext, Outlet } from "react-router-dom";
 import FilteredPresidentCards from "../components/FilteredPresidentCards";
-import CabinetFlow from "../../cabinetFlowPage/screens/CabinetFlow"
-import LandscapeRequired from "../../../components/landscapeRequired";
 import { setSelectedDate } from "../../../store/presidencySlice";
 import { resolveGazetteDateOnOrBefore } from "../../../utils/gazetteDateUtils";
 
@@ -22,8 +19,7 @@ const Organization = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [multiSelectedDates, setMultiSelectedDates] = useState(() => {
-    const params = new URLSearchParams(window.location.search);
-    const datesParam = params.get('compareDates');
+    const datesParam = searchParams.get('compareDates');
     return datesParam ? datesParam.split(',') : [];
   });
 
@@ -31,14 +27,16 @@ const Organization = () => {
     setMultiSelectedDates((prev) => {
       const newDates = prev.includes(date) ? prev.filter((d) => d !== date) : [...prev, date].slice(-10);
 
-      // Sync to URL
-      const params = new URLSearchParams(window.location.search);
-      if (newDates.length > 0) {
-        params.set("compareDates", newDates.join(","));
-      } else {
-        params.delete("compareDates");
-      }
-      setSearchParams(params, { replace: true });
+      // Sync to URL using functional updater to avoid stale closures
+      setSearchParams(prevParams => {
+        const next = new URLSearchParams(prevParams);
+        if (newDates.length > 0) {
+          next.set("compareDates", newDates.join(","));
+        } else {
+          next.delete("compareDates");
+        }
+        return next;
+      }, { replace: true });
 
       return newDates;
     });
@@ -58,8 +56,7 @@ const Organization = () => {
 
       if (activeView === "structure") {
         if (!isFirstMount.current) {
-          const params = new URLSearchParams(window.location.search);
-          const urlSelectedDate = params.get("selectedDate");
+          const urlSelectedDate = searchParams.get("selectedDate");
 
           // Prefer the URL's selectedDate over the default lastGazette.
           // This prevents an intermediate president-switch from wiping the shared date.
@@ -73,8 +70,7 @@ const Organization = () => {
           }
         }
       } else if (activeView === "changes") {
-        const params = new URLSearchParams(window.location.search);
-        const datesFromUrl = params.get("compareDates");
+        const datesFromUrl = searchParams.get("compareDates");
 
         if (isFirstMount.current && datesFromUrl) {
           setMultiSelectedDates(datesFromUrl.split(",").slice(-10));
@@ -127,15 +123,15 @@ const Organization = () => {
   const handleMinistryNodeClick = useCallback((node) => {
     const resolvedDate = resolveGazetteDateOnOrBefore(node.time, gazetteData);
     dispatch(setSelectedDate({ date: resolvedDate }));
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(searchParams);
     params.delete("compareDates");
     params.set("selectedDate", resolvedDate);
     params.set("ministry", node.id);
     navigate(`/executive-branch/structure?${params.toString()}`, { replace: true });
-  }, [dispatch, gazetteData, navigate]);
+  }, [dispatch, gazetteData, navigate, searchParams]);
 
   const toggleView = (viewName) => {
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(searchParams);
     if (viewName === "changes") {
       params.delete("selectedDate");
       params.delete("ministry");
@@ -221,14 +217,12 @@ const Organization = () => {
           </button>
         </div>
 
-
         {/* Gazette Timeline (Moved outside the white box) */}
         <GazetteTimeline
           multiSelect={activeView === "changes"}
           multiSelectedDates={multiSelectedDates}
           onMultiSelectChange={handleMultiSelectChange}
         />
-
 
         {/* Use Outlet to render the nested view */}
         <Outlet context={{
@@ -240,31 +234,6 @@ const Organization = () => {
         }} />
       </div>
     </div>
-  );
-};
-
-export const StructureView = () => {
-  const { selectedPresident } = useOutletContext();
-  const selectedDate = useSelector((state) => state.presidency.selectedDate);
-  return (
-    <>
-      {selectedPresident && <>{selectedDate != null && <MinistryCardGrid />}</>}
-    </>
-  );
-};
-
-export const ChangesView = () => {
-  const { toggleView, selectedPresident, dateRange, multiSelectedDates, handleMinistryNodeClick } = useOutletContext();
-  return (
-    <LandscapeRequired onBack={() => toggleView("structure")}>
-      <CabinetFlow
-        key={selectedPresident?.id}
-        presidentId={selectedPresident?.id}
-        dateRange={dateRange}
-        selectedDates={multiSelectedDates}
-        onMinistryNodeClick={handleMinistryNodeClick}
-      />
-    </LandscapeRequired>
   );
 };
 

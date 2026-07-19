@@ -7,7 +7,7 @@ import utils from "../../../utils/utils";
 import api from "../../../services/services";
 import { useThemeContext } from "../../../context/themeContext";
 import InfoTooltip from "../../../components/InfoToolTip";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { ClipLoader } from "react-spinners";
 
 const PersonsTab = ({ selectedDate }) => {
@@ -17,10 +17,10 @@ const PersonsTab = ({ selectedDate }) => {
   const [ministerListForMinistry, setministerListForMinistry] = useState([]);
   const [loading, setLoading] = useState(false);
   const location = useLocation();
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const selectedMinistry = params.get("ministry");
+    const selectedMinistry = searchParams.get("ministry");
 
     if (!selectedMinistry) return;
 
